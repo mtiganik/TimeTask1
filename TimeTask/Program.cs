@@ -58,7 +58,7 @@ namespace TimeTask
             }
             else
             {
-                throw new FileNotFoundException($"File {filename} was not found. Please place it to \\TimeTask\\bin\\Debug\\net6.0\\ folder");
+                throw new FileNotFoundException($"File {filename} was not found. Please place it to \\TimeTask\\TimeTask\\bin\\Debug\\net6.0\\ folder");
             }
             return result;
         }
