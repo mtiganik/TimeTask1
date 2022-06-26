@@ -8,12 +8,12 @@ namespace TimeTask
         static void Main(string[] args)
         {
             string filename = "visits1.txt";
-
-            List<(Time,Time)> Input = getInputData(filename);
+            Program p = new Program();
+            List<(Time,Time)> Input = p.getInputData(filename);
 
             //List<Hour> Hours = InitializeCompareData();
 
-            List<Hour> HoursResult = getResultsOnList(Input);
+            List<Hour> HoursResult = p.getResultsOnList(Input);
 
             foreach (Hour hour in HoursResult)
             {
@@ -24,7 +24,6 @@ namespace TimeTask
                 }
                 Console.WriteLine();
             }
-
             //    foreach (var item in Input)
             //{
             //    Console.WriteLine($"{item.Item1.hour}:{item.Item1.minute} -> {item.Item2.hour}:{item.Item2.minute}");
@@ -32,7 +31,7 @@ namespace TimeTask
             //Console.WriteLine("Hello World!");
         }
 
-        static List<Hour> getResultsOnList(List<(Time, Time)> Input)
+        List<Hour> getResultsOnList(List<(Time, Time)> Input)
         {
             var result = InitializeCompareData();
             for(int i = 0; i < Input.Count; i++)
@@ -41,30 +40,58 @@ namespace TimeTask
                 {
                     for(int j = Input[i].Item1.minute; j <= Input[i].Item2.minute; j++)
                     {
-                        //int count1 = result.Where(x => x.Id == Input[i].Item1.hour).Select(x=> x.Minutes.Count).FirstOrDefault();
                         int count = result[Input[i].Item1.hour].Minutes[j].CountVal;
                         count++;
                         result[Input[i].Item1.hour].Minutes[j].CountVal = count; 
                     }
                 }
+                else if(Input[i].Item2.hour - Input[i].Item1.hour == 1) // väljumine järgmisel tunnil
+                {
+                    for(int j = Input[i].Item1.minute; j < 60; j++)
+                    {
+                        int count = result[Input[i].Item1.hour].Minutes[j].CountVal;
+                        count++;
+                        result[Input[i].Item1.hour].Minutes[j].CountVal = count;
+
+                    }
+                    for(int j = 0; j <= Input[i].Item2.minute; j++)
+                    {
+                        int count = result[Input[i].Item2.hour].Minutes[j].CountVal;
+                        count++;
+                        result[Input[i].Item2.hour].Minutes[j].CountVal = count;
+                    }
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
             }
             return result;
         }
 
-        static List<Hour> InitializeCompareData()
+        //private List<Hour> IncreaseAMinute(List<Hour> Data, int hour, int minute)
+        //{
+        //    int count = Data[hour].Minutes[minute].CountVal;
+        //    count++;
+        //    Data[hour].Minutes[minute].CountVal = count;    
+        //    return Data;
+        //}
+
+        List<Hour> InitializeCompareData()
         {
             List<Hour> hourList = new List<Hour>();
-            List<Minute> minuteList = new List<Minute>();
-            for(int i =0; i < 60; i++)
-            {
-                minuteList.Add(new Minute()
-                {
-                    CountVal = 0,
-                    Id = i,
-                });
-            }
+           
             for (int i = 0; i < 24; i++)
             {
+                List<Minute> minuteList = new List<Minute>();
+                for (int j = 0; j < 60; j++)
+                {
+                    minuteList.Add(new Minute()
+                    {
+                        CountVal = 0,
+                        Id = j,
+                    });
+                }
                 hourList.Add(new Hour()
                 {
                     Id = i,
@@ -74,7 +101,7 @@ namespace TimeTask
             return hourList;
         }
 
-        static public List<(Time,Time)> getInputData(string filename)
+        public List<(Time,Time)> getInputData(string filename)
         {
             List<(Time, Time)> result = new List<(Time, Time)>();
             if (File.Exists(filename))
