@@ -25,6 +25,7 @@ namespace TimeTask
             //    }
             //    Console.WriteLine();
             //}
+            Console.ReadLine();
         }
 
         static public List<(Time, Time)> getInputData(string filename)
@@ -54,6 +55,10 @@ namespace TimeTask
                         result.Add(row);
                     }
                 }
+            }
+            else
+            {
+                throw new FileNotFoundException($"File {filename} was not found. Please place it to \\TimeTask\\bin\\Debug\\net6.0\\ folder");
             }
             return result;
         }
