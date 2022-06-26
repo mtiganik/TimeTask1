@@ -7,58 +7,79 @@ namespace TimeTask
     {
         static void Main(string[] args)
         {
-            string filename = "visits1.txt";
-            Program p = new Program();
-            List<(Time,Time)> Input = p.getInputData(filename);
+            string filename = "visits.txt";
 
-            //List<Hour> Hours = InitializeCompareData();
+            List<(Time,Time)> Input = getInputData(filename);
 
-            List<Hour> HoursResult = p.getResultsOnList(Input);
+            List<Hour> HoursResult = getResultsOnList(Input);
 
-            foreach (Hour hour in HoursResult)
-            {
-                Console.WriteLine("/// " + hour.Id + " ");
-                foreach (var minute in hour.Minutes)
-                {
-                    Console.WriteLine(minute.Id + " " + minute.CountVal);
-                }
-                Console.WriteLine();
-            }
-            //    foreach (var item in Input)
+            DisplayData(HoursResult);
+
+            //// Debug code
+            //foreach (Hour hour in HoursResult)
             //{
-            //    Console.WriteLine($"{item.Item1.hour}:{item.Item1.minute} -> {item.Item2.hour}:{item.Item2.minute}");
+            //    Console.WriteLine("/// " + hour.Id + " ");
+            //    foreach (var minute in hour.Minutes)
+            //    {
+            //        Console.WriteLine(minute.Id + " " + minute.CountVal);
+            //    }
+            //    Console.WriteLine();
             //}
-            //Console.WriteLine("Hello World!");
         }
 
-        List<Hour> getResultsOnList(List<(Time, Time)> Input)
+        static public List<(Time, Time)> getInputData(string filename)
         {
-            var result = InitializeCompareData();
-            for(int i = 0; i < Input.Count; i++)
+            List<(Time, Time)> result = new List<(Time, Time)>();
+            if (File.Exists(filename))
             {
-                if(Input[i].Item1.hour == Input[i].Item2.hour) // kui sisenemine ja väljumine toimusid sama tunni sees
+                using (StreamReader sr = new StreamReader(filename))
                 {
-                    for(int j = Input[i].Item1.minute; j <= Input[i].Item2.minute; j++)
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
                     {
-                        int count = result[Input[i].Item1.hour].Minutes[j].CountVal;
-                        count++;
-                        result[Input[i].Item1.hour].Minutes[j].CountVal = count; 
+                        string[] linesplit = line.Split(',');
+                        string[] entranceString = linesplit[0].Split(':');
+                        string[] leaveString = linesplit[1].Split(':');
+                        Time entrance = new Time()
+                        {
+                            hour = int.Parse(entranceString[0]),
+                            minute = int.Parse(entranceString[1]),
+                        };
+                        Time leave = new Time()
+                        {
+                            hour = int.Parse(leaveString[0]),
+                            minute = int.Parse(leaveString[1]),
+                        };
+                        (Time, Time) row = (entrance, leave);
+                        result.Add(row);
                     }
                 }
-                else if(Input[i].Item2.hour - Input[i].Item1.hour == 1) // väljumine järgmisel tunnil
+            }
+            return result;
+        }
+
+        static List<Hour> getResultsOnList(List<(Time, Time)> Input)
+        {
+            var result = InitializeCompareData();
+            for (int i = 0; i < Input.Count; i++)
+            {
+                if (Input[i].Item1.hour == Input[i].Item2.hour) // kui sisenemine ja väljumine toimusid sama tunni sees
                 {
-                    for(int j = Input[i].Item1.minute; j < 60; j++)
+                    for (int j = Input[i].Item1.minute; j <= Input[i].Item2.minute; j++)
                     {
-                        int count = result[Input[i].Item1.hour].Minutes[j].CountVal;
-                        count++;
-                        result[Input[i].Item1.hour].Minutes[j].CountVal = count;
+                        IncreaseStartHourMinute(Input, result, i, j);
+                    }
+                }
+                else if (Input[i].Item2.hour - Input[i].Item1.hour == 1) // väljumine järgmisel tunnil
+                {
+                    for (int j = Input[i].Item1.minute; j < 60; j++)
+                    {
+                        IncreaseStartHourMinute(Input, result, i, j);
 
                     }
-                    for(int j = 0; j <= Input[i].Item2.minute; j++)
+                    for (int j = 0; j <= Input[i].Item2.minute; j++)
                     {
-                        int count = result[Input[i].Item2.hour].Minutes[j].CountVal;
-                        count++;
-                        result[Input[i].Item2.hour].Minutes[j].CountVal = count;
+                        IncreaseEndHourMinute(Input, result, i, j);
                     }
                 }
                 else
@@ -69,18 +90,10 @@ namespace TimeTask
             return result;
         }
 
-        //private List<Hour> IncreaseAMinute(List<Hour> Data, int hour, int minute)
-        //{
-        //    int count = Data[hour].Minutes[minute].CountVal;
-        //    count++;
-        //    Data[hour].Minutes[minute].CountVal = count;    
-        //    return Data;
-        //}
-
-        List<Hour> InitializeCompareData()
+        static List<Hour> InitializeCompareData()
         {
             List<Hour> hourList = new List<Hour>();
-           
+
             for (int i = 0; i < 24; i++)
             {
                 List<Minute> minuteList = new List<Minute>();
@@ -101,37 +114,44 @@ namespace TimeTask
             return hourList;
         }
 
-        public List<(Time,Time)> getInputData(string filename)
+
+
+
+        static void DisplayData(List<Hour> Input)
         {
-            List<(Time, Time)> result = new List<(Time, Time)>();
-            if (File.Exists(filename))
+            // find max visitors count at any time
+            int count = 0;
+            foreach (Hour hour in Input)
             {
-                using (StreamReader sr = new StreamReader(filename))
+                foreach(Minute minute in hour.Minutes)
                 {
-                    string line;
-                    //Tuple<int, int> row;
-                    while ((line = sr.ReadLine()) != null)
-                    {
-                        string[] linesplit = line.Split(',');
-                        string[] entranceString = linesplit[0].Split(':');
-                        string[] leaveString = linesplit[1].Split(':');
-                        //((int, int), (int, int)) row = ((int.Parse(entrance[0]), int.Parse(entrance[1])), (int.Parse(leave[0]), int.Parse(leave[1])));
-                        Time entrance = new Time()
-                        {
-                            hour = int.Parse(entranceString[0]),
-                            minute = int.Parse(entranceString[1]),
-                        };
-                        Time leave = new Time()
-                        {
-                            hour = int.Parse(leaveString[0]),
-                            minute = int.Parse(leaveString[1]),
-                        };
-                        (Time,Time) row =(entrance, leave);
-                        result.Add(row);
-                    }
+                    if(minute.CountVal > count) count = minute.CountVal;
                 }
             }
-            return result;
+            Console.WriteLine($"Maximum visitors ({count}) where at the museum on these times:");
+            foreach (Hour hour in Input)
+            {
+                foreach (Minute minute in hour.Minutes)
+                {
+                    if (minute.CountVal == count) Console.WriteLine(hour.Id + ":" + minute.Id);
+
+                }
+            }
         }
+
+
+        private static void IncreaseStartHourMinute(List<(Time, Time)> Input, List<Hour> result, int i, int j)
+        {
+            int count = result[Input[i].Item1.hour].Minutes[j].CountVal;
+            count++;
+            result[Input[i].Item1.hour].Minutes[j].CountVal = count;
+        }
+        private static void IncreaseEndHourMinute(List<(Time, Time)> Input, List<Hour> result, int i, int j)
+        {
+            int count = result[Input[i].Item2.hour].Minutes[j].CountVal;
+            count++;
+            result[Input[i].Item2.hour].Minutes[j].CountVal = count;
+        }
+
     }
 }
