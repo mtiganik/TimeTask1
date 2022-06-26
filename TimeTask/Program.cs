@@ -58,7 +58,8 @@ namespace TimeTask
             }
             else
             {
-                throw new FileNotFoundException($"File {filename} was not found. Please place it to \\TimeTask\\TimeTask\\bin\\Debug\\net6.0\\ folder");
+                string directory = Directory.GetCurrentDirectory();
+                throw new FileNotFoundException($"File {filename} was not found. Please place it to {directory} folder");
             }
             return result;
         }
