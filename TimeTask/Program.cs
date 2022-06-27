@@ -90,7 +90,8 @@ namespace TimeTask
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    string inCorrectFormat = Input[i].Item1.hour + ":" + Input[i].Item1.minute + "," + Input[i].Item2.hour + ":" + Input[i].Item2.minute;
+                    throw new NotImplementedException($"Input {inCorrectFormat} is not in correct form");
                 }
             }
             return result;
