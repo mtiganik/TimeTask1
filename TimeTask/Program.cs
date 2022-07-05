@@ -3,7 +3,7 @@ using TimeTask.Models;
 
 namespace TimeTask 
 {
-    internal class Program
+    public class Program
     {
         static void Main(string[] args)
         {
@@ -189,3 +189,4 @@ namespace TimeTask
 
     }
 }
+
