@@ -9,24 +9,17 @@ namespace TimeTask
         {
             string filename = "visits.txt";
 
-            List<(Time,Time)> Input = getInputData(filename);
+            List<(Time, Time)> Input = getInputData(filename);
 
             List<Hour> HoursResult = getResultsOnList(Input);
 
             DisplayData(HoursResult);
 
-            //// Debug code
-            //foreach (Hour hour in HoursResult)
-            //{
-            //    Console.WriteLine("/// " + hour.Id + " ");
-            //    foreach (var minute in hour.Minutes)
-            //    {
-            //        Console.WriteLine(minute.Id + " " + minute.CountVal);
-            //    }
-            //    Console.WriteLine();
-            //}
+            // Debug(HoursResult);
+
             Console.ReadLine();
         }
+
 
         static public List<(Time, Time)> getInputData(string filename)
         {
@@ -69,29 +62,25 @@ namespace TimeTask
             var result = InitializeCompareData();
             for (int i = 0; i < Input.Count; i++)
             {
-                if (Input[i].Item1.hour == Input[i].Item2.hour) // kui sisenemine ja väljumine toimusid sama tunni sees
+                int StartHour = Input[i].Item1.hour;
+                int EndHour = Input[i].Item2.hour;
+                int HourTicker = StartHour;
+                int startIndex, endIndex = 0;
+                while(HourTicker <= EndHour)
                 {
-                    for (int j = Input[i].Item1.minute; j <= Input[i].Item2.minute; j++)
+                    if (HourTicker == StartHour) startIndex = Input[i].Item1.minute;
+                    else startIndex = 0;
+                    if (HourTicker == EndHour) endIndex = Input[i].Item2.minute + 1;
+                    else endIndex = 60;
+
+                    for(int j = startIndex; j < endIndex; j++)
                     {
-                        IncreaseStartHourMinute(Input, result, i, j);
-                    }
-                }
-                else if (Input[i].Item2.hour - Input[i].Item1.hour == 1) // väljumine järgmisel tunnil
-                {
-                    for (int j = Input[i].Item1.minute; j < 60; j++)
-                    {
-                        IncreaseStartHourMinute(Input, result, i, j);
+                        int count = result[HourTicker].Minutes[j].CountVal;
+                        count++;
+                        result[HourTicker].Minutes[j].CountVal = count;
 
                     }
-                    for (int j = 0; j <= Input[i].Item2.minute; j++)
-                    {
-                        IncreaseEndHourMinute(Input, result, i, j);
-                    }
-                }
-                else
-                {
-                    string inCorrectFormat = Input[i].Item1.hour + ":" + Input[i].Item1.minute + "," + Input[i].Item2.hour + ":" + Input[i].Item2.minute;
-                    throw new NotImplementedException($"Input {inCorrectFormat} is not in correct form");
+                    HourTicker++;
                 }
             }
             return result;
@@ -121,9 +110,6 @@ namespace TimeTask
             return hourList;
         }
 
-
-
-
         static void DisplayData(List<Hour> Input)
         {
             // find max visitors count at any time
@@ -135,29 +121,70 @@ namespace TimeTask
                     if(minute.CountVal > count) count = minute.CountVal;
                 }
             }
-            Console.WriteLine($"Maximum visitors ({count}) where at the museum on these times:");
-            foreach (Hour hour in Input)
+            List<string> result = new List<string>();
+            for(int i = 0; i < 24; i++)
             {
-                foreach (Minute minute in hour.Minutes)
+                for(int j = 0; j < 60; j++)
                 {
-                    if (minute.CountVal == count) Console.WriteLine(hour.Id + ":" + minute.Id);
+                    if(Input[i].Minutes[j].CountVal == count)
+                    {
+                        string res = Input[i].ToString(j);
+                        bool isSingleMinute = true;
 
+                        IncreaseCounter(ref i, ref j);
+                        while (Input[i].Minutes[j].CountVal == count)
+                        {
+                            isSingleMinute = false;
+                            IncreaseCounter(ref i, ref j);
+                        }
+                        if (!isSingleMinute)
+                        {
+                            DecreaseCounter(ref i, ref j);
+                            res += " - " + Input[i].ToString(j);
+                            IncreaseCounter(ref i, ref j);
+                        }
+                        result.Add(res);
+                    }
                 }
+            }
+            
+            Console.WriteLine($"Maximum visitors ({count}) where at the museum on these times:");
+            foreach (var item in result)
+            {
+                Console.WriteLine(item);
             }
         }
 
-
-        private static void IncreaseStartHourMinute(List<(Time, Time)> Input, List<Hour> result, int i, int j)
+        private static void IncreaseCounter(ref int i, ref int j)
         {
-            int count = result[Input[i].Item1.hour].Minutes[j].CountVal;
-            count++;
-            result[Input[i].Item1.hour].Minutes[j].CountVal = count;
+            j++;
+            if (j == 60)
+            {
+                i++;
+                j = 0;
+            }
         }
-        private static void IncreaseEndHourMinute(List<(Time, Time)> Input, List<Hour> result, int i, int j)
+
+        private static void DecreaseCounter(ref int i, ref int j)
         {
-            int count = result[Input[i].Item2.hour].Minutes[j].CountVal;
-            count++;
-            result[Input[i].Item2.hour].Minutes[j].CountVal = count;
+            j--;
+            if (j == -1)
+            {
+                i--;
+                j = 60;
+            }
+        }
+        private static void Debug(List<Hour> HoursResult)
+        {
+            foreach (Hour hour in HoursResult)
+            {
+                Console.WriteLine("/// " + hour.Id + " ");
+                foreach (var minute in hour.Minutes)
+                {
+                    Console.WriteLine(hour.ToString(minute.Id) + " " + minute.CountVal);
+                }
+                Console.WriteLine();
+            }
         }
 
     }
